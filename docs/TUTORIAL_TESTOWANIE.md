@@ -26,38 +26,45 @@ Na Windows **nie musisz** mieć `make` — poniżej są gotowe komendy oraz skry
 git --version
 ```
 
-### Krok B – GHDL (zalecane: oficjalny build MinGW)
+### Krok B – GHDL na Windows (bez instalatora `.exe`)
 
-1. Wejdź na wydania GHDL:  
-   https://github.com/ghdl/ghdl/releases
-2. Pobierz paczkę Windows, np. plik w stylu:
-   - `ghdl-*-mingw64.zip`  
-   albo instalator `.exe`, jeśli jest dostępny.
-3. Rozpakuj np. do:
-   - `C:\ghdl\`
-4. Dodaj do **PATH** katalog `bin`, np.:
-   - `C:\ghdl\bin`
+GHDL **nie ma klasycznego setup.exe**. Na Windows pobierasz **ZIP** i dodajesz `bin` do PATH.
+
+#### Bezpośredni link (zalecane)
+
+Strona wydań: https://github.com/ghdl/ghdl/releases/latest  
+
+Pobierz jeden z plików Windows (scroll w dół do **Assets**):
+
+| Plik | Link bezpośredni |
+|------|------------------|
+| **mingw64** (najczęściej ten) | https://github.com/ghdl/ghdl/releases/download/v6.0.0/ghdl-mcode-6.0.0-mingw64.zip |
+| ucrt64 (alternatywa) | https://github.com/ghdl/ghdl/releases/download/v6.0.0/ghdl-mcode-6.0.0-ucrt64.zip |
+
+> Na liście Assets jest dużo plików Linux/macOS (`.tar.gz`). Szukaj końcówki **`.zip`** i nazwy z `mingw64` albo `ucrt64`.
+
+#### Instalacja krok po kroku
+
+1. Pobierz `ghdl-mcode-6.0.0-mingw64.zip`.
+2. Rozpakuj np. do `C:\ghdl\`  
+   (wewnątrz powinien być katalog `bin` z `ghdl.exe`).
+3. Dodaj do PATH katalog `bin`, np. `C:\ghdl\bin`  
+   (jeśli po rozpakowaniu masz `C:\ghdl\ghdl-mcode-...\bin`, dodaj właśnie tę ścieżkę).
 
 Jak dodać PATH w Windows 10/11:
 
 1. Start → wpisz **Zmienne środowiskowe** → *Edytuj zmienne środowiskowe systemowe*
 2. *Zmienne środowiskowe…* → w *Zmienne użytkownika* wybierz `Path` → *Edytuj*
 3. *Nowy* → wklej ścieżkę do `bin` GHDL → OK
-
-4. **Zamknij i otwórz ponownie** PowerShell, potem:
+4. **Zamknij i otwórz ponownie** PowerShell:
 
 ```powershell
 ghdl --version
 ```
 
-Powinieneś zobaczyć wersję GHDL (np. 3.x / 4.x).
-
 #### Alternatywa: Scoop
 
-Jeśli masz [Scoop](https://scoop.sh/):
-
 ```powershell
-scoop bucket add main
 scoop install ghdl
 ghdl --version
 ```
@@ -65,15 +72,13 @@ ghdl --version
 #### Alternatywa: MSYS2
 
 1. Zainstaluj [MSYS2](https://www.msys2.org/).
-2. W terminalu MSYS2 UCRT64 / MINGW64:
+2. W terminalu **UCRT64**:
 
 ```bash
 pacman -S mingw-w64-ucrt-x86_64-ghdl-mcode
 ```
 
-(albo odpowiednik `mingw-w64-x86_64-ghdl-mcode` w środowisku Mingw-w64)
-
-Dodaj `C:\msys64\ucrt64\bin` (lub `mingw64\bin`) do PATH.
+Dodaj do PATH: `C:\msys64\ucrt64\bin`.
 
 ### Krok C – GTKWave (opcjonalnie)
 
