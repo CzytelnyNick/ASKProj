@@ -1,10 +1,8 @@
 --------------------------------------------------------------------------------
--- Jednostka obliczeniowa arccos(x)
--- arccos(x) = arctan2( sqrt(1 - x^2), x )   dla |x| < 1
--- arccos( 1) = 0
--- arccos(-1) = pi
--- Argument i wynik: signed Q4.124 (128 bitów)
--- Domenę: x ∈ [-1, 1]; wynik ∈ [0, pi]; poza domeną: err
+-- Jednostka arccos(x) z rozbudowaną diagnostyką błędów
+-- Błędy:
+--   ERR_DOMAIN   – |x| > 1
+--   ERR_INTERNAL – 1-x^2 < 0 (niespójność numeryczna)
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -21,7 +19,8 @@ entity arccos_unit is
         result   : out word128_t;
         done     : out std_logic;
         busy     : out std_logic;
-        err      : out std_logic
+        err      : out std_logic;
+        errcode  : out word128_t
     );
 end entity arccos_unit;
 
@@ -44,6 +43,7 @@ architecture rtl of arccos_unit is
 
     signal arg_r       : word128_t;
     signal x2          : word128_t;
+    signal one_m       : word128_t;
     signal sqrt_arg    : word128_t;
     signal sqrt_res    : word128_t;
     signal atan_res    : word128_t;
@@ -58,14 +58,16 @@ architecture rtl of arccos_unit is
     signal done_r      : std_logic := '0';
     signal busy_r      : std_logic := '0';
     signal err_r       : std_logic := '0';
+    signal errcode_r   : word128_t := ERR_OK;
     signal result_r    : word128_t := (others => '0');
 
 begin
 
-    done   <= done_r;
-    busy   <= busy_r;
-    err    <= err_r;
-    result <= result_r;
+    done    <= done_r;
+    busy    <= busy_r;
+    err     <= err_r;
+    errcode <= errcode_r;
+    result  <= result_r;
 
     u_sqrt : entity work.sqrt_unit
         port map (
@@ -78,7 +80,6 @@ begin
             busy   => sqrt_busy
         );
 
-    -- arctan2(y, x) z y = sqrt(1-x^2), x = arg  =>  arccos(arg)
     u_atan : entity work.atan_unit
         port map (
             clk    => clk,
@@ -100,9 +101,11 @@ begin
                 done_r     <= '0';
                 busy_r     <= '0';
                 err_r      <= '0';
+                errcode_r  <= ERR_OK;
                 result_r   <= (others => '0');
                 arg_r      <= (others => '0');
                 x2         <= (others => '0');
+                one_m      <= (others => '0');
                 sqrt_arg   <= (others => '0');
                 sqrt_start <= '0';
                 atan_start <= '0';
@@ -115,16 +118,19 @@ begin
                         done_r <= '0';
                         err_r  <= '0';
                         if start = '1' then
-                            busy_r <= '1';
-                            arg_r  <= arg_in;
-                            state  <= ST_CHECK;
+                            busy_r    <= '1';
+                            errcode_r <= ERR_OK;
+                            arg_r     <= arg_in;
+                            state     <= ST_CHECK;
                         end if;
 
                     when ST_CHECK =>
+                        -- Główny błąd dziedziny: arccos tylko dla [-1, 1]
                         if abs_q124(arg_r) > Q_ONE then
-                            err_r    <= '1';
-                            result_r <= Q_ZERO;
-                            state    <= ST_DONE;
+                            err_r     <= '1';
+                            errcode_r <= ERR_DOMAIN;
+                            result_r  <= Q_ZERO;
+                            state     <= ST_DONE;
                         elsif abs_q124(arg_r) = Q_ONE then
                             state <= ST_EDGE;
                         else
@@ -133,19 +139,29 @@ begin
 
                     when ST_EDGE =>
                         if arg_r < 0 then
-                            result_r <= Q_PI;      -- arccos(-1) = pi
+                            result_r <= Q_PI;
                         else
-                            result_r <= Q_ZERO;    -- arccos(+1) = 0
+                            result_r <= Q_ZERO;
                         end if;
-                        state <= ST_DONE;
+                        err_r     <= '0';
+                        errcode_r <= ERR_OK;
+                        state     <= ST_DONE;
 
                     when ST_SQ =>
                         x2    <= mul_q124(arg_r, arg_r);
                         state <= ST_ONE_MINUS;
 
                     when ST_ONE_MINUS =>
-                        sqrt_arg <= Q_ONE - x2;
-                        state    <= ST_SQRT_START;
+                        one_m <= Q_ONE - x2;
+                        if (Q_ONE - x2) < 0 then
+                            err_r     <= '1';
+                            errcode_r <= ERR_INTERNAL;
+                            result_r  <= Q_ZERO;
+                            state     <= ST_DONE;
+                        else
+                            sqrt_arg <= Q_ONE - x2;
+                            state    <= ST_SQRT_START;
+                        end if;
 
                     when ST_SQRT_START =>
                         sqrt_start <= '1';
@@ -165,18 +181,18 @@ begin
                             state <= ST_NORM;
                         end if;
 
-                    -- Upewnij się, że wynik jest w [0, pi]
                     when ST_NORM =>
                         ang := atan_res;
                         if ang < 0 then
                             ang := ang + Q_TWO_PI;
                         end if;
                         if ang > Q_PI then
-                            -- na wszelki wypadek (numeryka) – odbicie do [0,pi]
                             ang := Q_TWO_PI - ang;
                         end if;
-                        result_r <= ang;
-                        state    <= ST_DONE;
+                        result_r  <= ang;
+                        err_r     <= '0';
+                        errcode_r <= ERR_OK;
+                        state     <= ST_DONE;
 
                     when ST_DONE =>
                         done_r <= '1';

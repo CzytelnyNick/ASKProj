@@ -83,18 +83,22 @@ Zakres ok. \([-8, 8)\) wystarcza na kąty po redukcji oraz na \(\cos\in[-1,1]\),
 
 ---
 
-## 5. Mapa pamięci i protokół
+## 5. Mapa pamięci i protokół (w tym błędy)
 
 | Adres | Nazwa | Zawartość |
 |------:|-------|-----------|
 | 0 | OPCODE | `0` = cos, `1` = arccos |
 | 1 | ARG | argument \(x\) (Q4.124) |
-| 2 | RESULT | wynik (Q4.124) |
+| 2 | RESULT | wynik; przy błędzie **0** |
 | 3 | STATUS | bit0 = done, bit1 = error, bit2 = busy |
+| 4 | ERRCODE | szczegółowy kod błędu |
 
 1. Main zapisuje OPCODE i ARG → impuls `start`.
-2. Podprogram: STATUS=BUSY → czyta pamięć → liczy → RESULT → STATUS=DONE/`ERROR` → `done`.
-3. Main odczytuje RESULT i STATUS.
+2. Podprogram: STATUS=BUSY → walidacja / obliczenia → RESULT + ERRCODE → STATUS=DONE lub DONE+ERROR → `done`.
+3. Main odczytuje RESULT, STATUS i ERRCODE.
+
+**Kody:** 0=OK, 1=zły OPCODE, 2=domena arccos, 3=BUSY (ponowne wywołanie), 4=zakres cos, 5=wewnętrzny.  
+Szczegóły: [BLEDY.md](BLEDY.md).
 
 ---
 

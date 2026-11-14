@@ -1,6 +1,5 @@
 --------------------------------------------------------------------------------
--- Program główny – wywołuje podprogram matematyczny przez pamięć operacyjną
--- Demonstracja: obliczenie cos(x) oraz arccos(x) dla zadanego argumentu
+-- Program główny – wywołanie podprogramu + odczyt RESULT / STATUS / ERRCODE
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -12,14 +11,14 @@ entity main is
     port (
         clk           : in  std_logic;
         rst           : in  std_logic;
-        -- Sterowanie z testbencha / otoczenia
         go            : in  std_logic;
-        -- Wybór demo: 0 = cos, 1 = arccos (ładowane do pamięci przed startem)
+        -- impuls drugiego wywołania w trakcie pracy (test ERR_BUSY)
+        go_busy       : in  std_logic := '0';
         demo_opcode   : in  word128_t;
         demo_arg      : in  word128_t;
-        -- Wyniki widoczne na zewnątrz
         result_out    : out word128_t;
         status_out    : out word128_t;
+        errcode_out   : out word128_t;
         finished      : out std_logic
     );
 end entity main;
@@ -34,6 +33,7 @@ architecture rtl of main is
         ST_WAIT,
         ST_RD_RESULT,
         ST_RD_STATUS,
+        ST_RD_ERRCODE,
         ST_FINISH
     );
     signal state : state_t := ST_IDLE;
@@ -41,27 +41,27 @@ architecture rtl of main is
     signal call_start : std_logic := '0';
     signal call_done  : std_logic;
 
-    -- Port A (main) do pamięci
     signal a_we    : std_logic := '0';
     signal a_addr  : mem_addr_t := (others => '0');
     signal a_wdata : word128_t := (others => '0');
     signal a_rdata : word128_t;
 
-    -- Port B (subprogram)
     signal b_we    : std_logic;
     signal b_addr  : mem_addr_t;
     signal b_wdata : word128_t;
     signal b_rdata : word128_t;
 
-    signal result_r  : word128_t := (others => '0');
-    signal status_r  : word128_t := (others => '0');
-    signal finished_r: std_logic := '0';
+    signal result_r   : word128_t := (others => '0');
+    signal status_r   : word128_t := (others => '0');
+    signal errcode_r  : word128_t := (others => '0');
+    signal finished_r : std_logic := '0';
 
 begin
 
-    result_out <= result_r;
-    status_out <= status_r;
-    finished   <= finished_r;
+    result_out  <= result_r;
+    status_out  <= status_r;
+    errcode_out <= errcode_r;
+    finished    <= finished_r;
 
     u_mem : entity work.memory
         port map (
@@ -100,6 +100,7 @@ begin
                 call_start <= '0';
                 result_r   <= (others => '0');
                 status_r   <= (others => '0');
+                errcode_r  <= (others => '0');
                 finished_r <= '0';
             else
                 a_we       <= '0';
@@ -125,11 +126,14 @@ begin
                         state   <= ST_CALL;
 
                     when ST_CALL =>
-                        -- Wywołanie podprogramu
                         call_start <= '1';
                         state      <= ST_WAIT;
 
                     when ST_WAIT =>
+                        -- Drugie wywołanie w trakcie pracy → ERR_BUSY w podprogramie
+                        if go_busy = '1' then
+                            call_start <= '1';
+                        end if;
                         if call_done = '1' then
                             a_addr <= MEM_RESULT;
                             state  <= ST_RD_RESULT;
@@ -142,7 +146,12 @@ begin
 
                     when ST_RD_STATUS =>
                         status_r <= a_rdata;
-                        state    <= ST_FINISH;
+                        a_addr   <= MEM_ERRCODE;
+                        state    <= ST_RD_ERRCODE;
+
+                    when ST_RD_ERRCODE =>
+                        errcode_r <= a_rdata;
+                        state     <= ST_FINISH;
 
                     when ST_FINISH =>
                         finished_r <= '1';

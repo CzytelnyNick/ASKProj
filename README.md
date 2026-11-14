@@ -20,6 +20,7 @@ Wymagany GHDL (VHDL-2008). `make` na Windows nie jest potrzebny.
 
 ## Dokumentacja
 
+- Model błędów (priorytet): [docs/BLEDY.md](docs/BLEDY.md)
 - Tutorial testowania (Windows): [docs/TUTORIAL_TESTOWANIE.md](docs/TUTORIAL_TESTOWANIE.md)
 - Zarys koncepcji: [docs/KONCEPCJA.md](docs/KONCEPCJA.md)
 - Architektura i mapa pamięci: [docs/PROJEKT6.md](docs/PROJEKT6.md)

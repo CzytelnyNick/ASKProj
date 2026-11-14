@@ -154,16 +154,22 @@ make sim
 
 ---
 
-## 5. Oczekiwany wynik (sukces)
+## 5. Oczekiwany wynik
+
+Log zaczyna się od **testów błędów** (`[ERROR]`), potem regresja OK (`[OK]`):
 
 ```text
-==== Projekt 6 ASK: cos / arccos (128-bit Q4.124) ====
-[TEST] cos(0)  ...
-[TEST] arccos(0.5)  ...
-==== Wszystkie testy zakonczone ====
+==== Projekt 6: TESTY BLEDOW (priorytet) ====
+[ERROR] arccos(+1.1) DOMAIN  ... ERRCODE=2 ...
+[ERROR] opcode=2 BAD_OPCODE  ... ERRCODE=1 ...
+[ERROR] cos(+7.5) RANGE      ... ERRCODE=4 ...
+[ERROR] cos BUSY             ... ERRCODE=3
+==== Regresja cos / arccos (sciezka OK) ====
+[OK]    cos(0) ...
+==== Testy bledow i regresji zakonczone ====
 ```
 
-bez `FAIL` / `assertion error`.
+bez `FAIL` / `assertion error`. Opis kodów: `docs/BLEDY.md`.
 
 Ostrzeżenie `NUMERIC_STD.TO_INTEGER: metavalue detected` przy starcie można zignorować.
 
@@ -228,8 +234,9 @@ Przydatne sygnały: `go`, `finished`, `demo_opcode`, `demo_arg`, `result_out`, `
 |------:|---------|------|
 | 0 | OPCODE | 0 = cos, 1 = arccos |
 | 1 | ARG | argument x |
-| 2 | RESULT | wynik |
+| 2 | RESULT | wynik (0 przy błędzie) |
 | 3 | STATUS | bit0=done, bit1=error, bit2=busy |
+| 4 | ERRCODE | 0=OK, 1=OPCODE, 2=domena, 3=BUSY, 4=zakres |
 
 ---
 

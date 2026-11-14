@@ -30,12 +30,15 @@ Zakres: ok. \([-8, 8)\).
 
 ## Mapa pamięci operacyjnej
 
-| Adres | Nazwa        | Znaczenie                                      |
-|-------|--------------|------------------------------------------------|
-| 0     | `MEM_OPCODE` | `0` = cos, `1` = arccos                        |
-| 1     | `MEM_ARG`    | argument \(x\) (128 bit)                       |
-| 2     | `MEM_RESULT` | wynik (128 bit)                                |
-| 3     | `MEM_STATUS` | bit0=done, bit1=error, bit2=busy               |
+| Adres | Nazwa         | Znaczenie                                      |
+|-------|---------------|------------------------------------------------|
+| 0     | `MEM_OPCODE`  | `0` = cos, `1` = arccos                        |
+| 1     | `MEM_ARG`     | argument \(x\) (128 bit)                       |
+| 2     | `MEM_RESULT`  | wynik (128 bit); przy błędzie = 0              |
+| 3     | `MEM_STATUS`  | bit0=done, bit1=error, bit2=busy               |
+| 4     | `MEM_ERRCODE` | kod błędu (0=OK, 1=OPCODE, 2=domena, …)        |
+
+Szczegóły kodów błędów: [BLEDY.md](BLEDY.md).
 
 ## Architektura
 
@@ -89,4 +92,4 @@ Szczegóły instalacji GHDL na Windows: [TUTORIAL_TESTOWANIE.md](TUTORIAL_TESTOW
 1. Program główny zapisuje `OPCODE` i `ARG` do pamięci.
 2. Ustawia impuls `start` (1 takt zegara).
 3. Podprogram ustawia `STATUS=BUSY`, czyta komórki, liczy, zapisuje `RESULT`.
-4. Podprogram ustawia `STATUS=DONE` (lub `ERROR` poza domeną arccos) i zgłasza `done`.
+4. Podprogram ustawia `STATUS=DONE` albo `DONE+ERROR`, zapisuje `ERRCODE` i zgłasza `done`.

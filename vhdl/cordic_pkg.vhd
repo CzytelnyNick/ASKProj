@@ -87,6 +87,9 @@ package cordic_pkg is
     constant Q_HALF_PI: word128_t := x"1921FB54442D18000000000000000000";
     constant Q_TWO_PI : word128_t := x"6487ED5110B460000000000000000000";
     constant Q_NEG_ONE: word128_t := x"F0000000000000000000000000000000";
+    -- Limit |arg| dla cos: powyżej tego redukcja uznawana za niebezpieczną (Q4.124 ~[-8,8))
+    constant Q_COS_ARG_LIMIT : word128_t := x"70000000000000000000000000000000";  -- 7.0
+    constant Q_TWO           : word128_t := x"20000000000000000000000000000000";  -- 2.0
 
 end package cordic_pkg;
 
