@@ -76,11 +76,13 @@ Makefile
 docs/PROJEKT6.md
 ```
 
-## Uruchomienie symulacji
+## Uruchomienie symulacji (Windows)
 
-```bash
-make sim
+```powershell
+.\sim.bat
 ```
+
+Szczegóły instalacji GHDL na Windows: [TUTORIAL_TESTOWANIE.md](TUTORIAL_TESTOWANIE.md).
 
 ## Protokół wywołania podprogramu
 
