@@ -1,11 +1,11 @@
-# Projekt 5 – ASK 2024/2025
+# Projekt 6 – ASK 2024/2025
 
 ## Temat
 
 Zaprojektować w języku **VHDL** układ obliczający funkcje:
 
-- \(\sin(x)\)
-- \(\arcsin(x)\)
+- \(\cos(x)\)
+- \(\arccos(x)\)
 
 Argumenty reprezentowane są na **128 bitach**.
 
@@ -26,13 +26,13 @@ Argumenty reprezentowane są na **128 bitach**.
 \text{wartość} = \frac{\text{interpretacja całkowita (signed)}}{2^{124}}
 \]
 
-Zakres: ok. \([-8, 8)\). Wystarczający dla kątów po redukcji oraz wyników \(\sin/\arcsin\) w \([-1,1]\) / \([-\pi/2,\pi/2]\).
+Zakres: ok. \([-8, 8)\).
 
 ## Mapa pamięci operacyjnej
 
 | Adres | Nazwa        | Znaczenie                                      |
 |-------|--------------|------------------------------------------------|
-| 0     | `MEM_OPCODE` | `0` = sin, `1` = arcsin                        |
+| 0     | `MEM_OPCODE` | `0` = cos, `1` = arccos                        |
 | 1     | `MEM_ARG`    | argument \(x\) (128 bit)                       |
 | 2     | `MEM_RESULT` | wynik (128 bit)                                |
 | 3     | `MEM_STATUS` | bit0=done, bit1=error, bit2=busy               |
@@ -47,16 +47,16 @@ Zakres: ok. \([-8, 8)\). Wystarczający dla kątów po redukcji oraz wyników \(
                                       |
                       +---------------+---------------+
                       |                               |
-                 [sin_unit]                     [arcsin_unit]
-                 CORDIC rotacja                 arctan(x/√(1-x²))
+                 [cos_unit]                     [arccos_unit]
+                 CORDIC rotacja                 arctan2(√(1-x²), x)
                                                       |
                                           [sqrt_unit] + [atan_unit]
 ```
 
 ### Algorytmy
 
-- **sin(x)** – CORDIC w trybie rotacji kołowej (64 iteracje), z redukcją kąta do \([-\pi/2,\pi/2]\).
-- **arcsin(x)** – \(\arcsin(x)=\arctan\!\big(x/\sqrt{1-x^2}\big)\) dla \(|x|<1\); przypadki brzegowe \(\pm 1\) zwracają \(\pm\pi/2\). Pierwiastek: Newton–Raphson; arctan: CORDIC vectoring.
+- **cos(x)** – CORDIC w trybie rotacji kołowej (64 iteracje), z redukcją kąta do \([-\pi/2,\pi/2]\) i korektą znaku.
+- **arccos(x)** – \(\arccos(x)=\operatorname{atan2}\!\big(\sqrt{1-x^2},\,x\big)\) dla \(|x|<1\); brzegi: \(\arccos(1)=0\), \(\arccos(-1)=\pi\). Pierwiastek: Newton–Raphson; arctan: CORDIC vectoring.
 
 ## Struktura plików
 
@@ -64,31 +64,22 @@ Zakres: ok. \([-8, 8)\). Wystarczający dla kątów po redukcji oraz wyników \(
 vhdl/
   ask_types_pkg.vhd      – typy, format Q4.124, mapa pamięci
   cordic_pkg.vhd         – tablica atan(2^-i), stałe π, 1/K
-  sin_unit.vhd           – obliczanie sin
+  cos_unit.vhd           – obliczanie cos
   sqrt_unit.vhd          – pierwiastek (Newton)
   atan_unit.vhd          – arctan(y/x) CORDIC
-  arcsin_unit.vhd        – obliczanie arcsin
+  arccos_unit.vhd        – obliczanie arccos
   memory.vhd             – pamięć operacyjna (2 porty)
   math_subprogram.vhd    – podprogram (subroutine)
   main.vhd               – program główny
   tb_main.vhd            – testbench
 Makefile
-docs/PROJEKT5.md
+docs/PROJEKT6.md
 ```
 
 ## Uruchomienie symulacji
 
-Wymagany [GHDL](https://ghdl.github.io/ghdl/) (VHDL-2008):
-
 ```bash
 make sim
-```
-
-Samą analizę / elaborację:
-
-```bash
-make analyze
-make elaborate
 ```
 
 ## Protokół wywołania podprogramu
@@ -96,14 +87,4 @@ make elaborate
 1. Program główny zapisuje `OPCODE` i `ARG` do pamięci.
 2. Ustawia impuls `start` (1 takt zegara).
 3. Podprogram ustawia `STATUS=BUSY`, czyta komórki, liczy, zapisuje `RESULT`.
-4. Podprogram ustawia `STATUS=DONE` (lub `ERROR` poza domeną arcsin) i zgłasza `done`.
-
-## Wyniki testów (GHDL)
-
-| Test                 | Błąd bezwzględny (orientacyjnie) |
-|----------------------|----------------------------------|
-| sin(0), sin(π)       | ~1e-19                           |
-| sin(π/6), sin(π/2)   | 0 … 1e-16                        |
-| sin(1)               | ~1e-9                            |
-| arcsin(0.5), ±1      | 0 … 1e-16                        |
-| arcsin(√2/2)         | ~1e-16                           |
+4. Podprogram ustawia `STATUS=DONE` (lub `ERROR` poza domeną arccos) i zgłasza `done`.

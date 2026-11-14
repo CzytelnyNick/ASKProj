@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
--- Jednostka obliczeniowa sin(x) – algorytm CORDIC (tryb rotacji kołowej)
+-- Jednostka obliczeniowa cos(x) – algorytm CORDIC (tryb rotacji kołowej)
 -- Argument i wynik: signed Q4.124 (128 bitów)
--- Wejście: kąt w radianach; wyjście: sin(x) w [-1, 1]
+-- Wejście: kąt w radianach; wyjście: cos(x) w [-1, 1]
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -9,7 +9,7 @@ use ieee.numeric_std.all;
 use work.ask_types_pkg.all;
 use work.cordic_pkg.all;
 
-entity sin_unit is
+entity cos_unit is
     port (
         clk      : in  std_logic;
         rst      : in  std_logic;
@@ -19,9 +19,9 @@ entity sin_unit is
         done     : out std_logic;
         busy     : out std_logic
     );
-end entity sin_unit;
+end entity cos_unit;
 
-architecture rtl of sin_unit is
+architecture rtl of cos_unit is
 
     type state_t is (
         ST_IDLE,
@@ -84,7 +84,6 @@ begin
                             state    <= ST_REDUCE_POS;
                         end if;
 
-                    -- a := a - 2*pi  dopóki a >= pi
                     when ST_REDUCE_POS =>
                         if angle >= Q_PI then
                             angle <= angle - Q_TWO_PI;
@@ -92,7 +91,6 @@ begin
                             state <= ST_REDUCE_NEG;
                         end if;
 
-                    -- a := a + 2*pi  dopóki a < -pi
                     when ST_REDUCE_NEG =>
                         if angle < -Q_PI then
                             angle <= angle + Q_TWO_PI;
@@ -100,15 +98,15 @@ begin
                             state <= ST_QUAD;
                         end if;
 
-                    -- Sprowadzenie do [-pi/2, pi/2]
+                    -- Sprowadzenie do [-pi/2, pi/2]; cos(pi - a) = -cos(a)
                     when ST_QUAD =>
                         if angle > Q_HALF_PI then
-                            -- sin(pi - a) = sin(a), a in (pi/2, pi]
-                            angle <= Q_PI - angle;
-                            state <= ST_INIT;
+                            angle    <= Q_PI - angle;
+                            sign_neg <= '1';
+                            state    <= ST_INIT;
                         elsif angle < -Q_HALF_PI then
-                            -- a in [-pi, -pi/2): sin(a) = -sin(a + pi), a+pi in [0, pi/2]
-                            angle    <= angle + Q_PI;
+                            -- cos(a) = -cos(-pi - a) dla a in [-pi, -pi/2)
+                            angle    <= -Q_PI - angle;
                             sign_neg <= '1';
                             state    <= ST_INIT;
                         else
@@ -140,10 +138,11 @@ begin
                         z_reg <= z_n;
 
                         if iter_i = CORDIC_ITERS - 1 then
+                            -- Po CORDIC: x ≈ cos(angle)
                             if sign_neg = '1' then
-                                result_r <= -y_n;
+                                result_r <= -x_n;
                             else
-                                result_r <= y_n;
+                                result_r <= x_n;
                             end if;
                             state <= ST_DONE;
                         else

@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- Projekt 5 ASK 2024/2025
+-- Projekt 6 ASK 2024/2025
 -- Pakiet typów i mapy pamięci operacyjnej
 -- Format danych: signed fixed-point Q4.124 (128 bitów)
 --   bit 127      – znak
@@ -30,14 +30,14 @@ package ask_types_pkg is
     -- Mapa komórek pamięci operacyjnej (interfejs podprogramu)
     ----------------------------------------------------------------
     constant MEM_OPCODE  : mem_addr_t := to_unsigned(0, MEM_ADDR_WIDTH);
-    -- 0 = sin(x), 1 = arcsin(x)
+    -- 0 = cos(x), 1 = arccos(x)
     constant MEM_ARG     : mem_addr_t := to_unsigned(1, MEM_ADDR_WIDTH);
     constant MEM_RESULT  : mem_addr_t := to_unsigned(2, MEM_ADDR_WIDTH);
     constant MEM_STATUS  : mem_addr_t := to_unsigned(3, MEM_ADDR_WIDTH);
     -- STATUS: bit0=done, bit1=error (domena / NaN), bit2=busy
 
-    constant OPCODE_SIN    : word128_t := to_signed(0, DATA_WIDTH);
-    constant OPCODE_ARCSIN : word128_t := to_signed(1, DATA_WIDTH);
+    constant OPCODE_COS    : word128_t := to_signed(0, DATA_WIDTH);
+    constant OPCODE_ARCCOS : word128_t := to_signed(1, DATA_WIDTH);
 
     constant ST_IDLE_VAL  : word128_t := to_signed(0, DATA_WIDTH);
     constant ST_BUSY_VAL  : word128_t := to_signed(4, DATA_WIDTH);  -- bit2

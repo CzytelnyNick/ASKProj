@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 -- Jednostka arctan(y/x) – CORDIC w trybie wektorowania (circular vectoring)
--- Używana do arcsin(w) = arctan(w / sqrt(1-w^2))
+-- Używana m.in. do arccos(w) = arctan2(sqrt(1-w^2), w)
 -- Wejścia x,y oraz wynik kąta: Q4.124
 --------------------------------------------------------------------------------
 library ieee;

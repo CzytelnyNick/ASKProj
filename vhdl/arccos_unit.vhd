@@ -1,9 +1,10 @@
 --------------------------------------------------------------------------------
--- Jednostka obliczeniowa arcsin(x)
--- arcsin(x) = arctan( x / sqrt(1 - x^2) )   dla |x| < 1
--- arcsin(±1) = ±pi/2
+-- Jednostka obliczeniowa arccos(x)
+-- arccos(x) = arctan2( sqrt(1 - x^2), x )   dla |x| < 1
+-- arccos( 1) = 0
+-- arccos(-1) = pi
 -- Argument i wynik: signed Q4.124 (128 bitów)
--- Domenę: x ∈ [-1, 1]; poza domeną ustawiany jest sygnał err
+-- Domenę: x ∈ [-1, 1]; wynik ∈ [0, pi]; poza domeną: err
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -11,7 +12,7 @@ use ieee.numeric_std.all;
 use work.ask_types_pkg.all;
 use work.cordic_pkg.all;
 
-entity arcsin_unit is
+entity arccos_unit is
     port (
         clk      : in  std_logic;
         rst      : in  std_logic;
@@ -22,9 +23,9 @@ entity arcsin_unit is
         busy     : out std_logic;
         err      : out std_logic
     );
-end entity arcsin_unit;
+end entity arccos_unit;
 
-architecture rtl of arcsin_unit is
+architecture rtl of arccos_unit is
 
     type state_t is (
         ST_IDLE,
@@ -36,13 +37,13 @@ architecture rtl of arcsin_unit is
         ST_SQRT_WAIT,
         ST_ATAN_START,
         ST_ATAN_WAIT,
+        ST_NORM,
         ST_DONE
     );
     signal state : state_t := ST_IDLE;
 
     signal arg_r       : word128_t;
     signal x2          : word128_t;
-    signal one_minus   : word128_t;
     signal sqrt_arg    : word128_t;
     signal sqrt_res    : word128_t;
     signal atan_res    : word128_t;
@@ -77,19 +78,21 @@ begin
             busy   => sqrt_busy
         );
 
+    -- arctan2(y, x) z y = sqrt(1-x^2), x = arg  =>  arccos(arg)
     u_atan : entity work.atan_unit
         port map (
             clk    => clk,
             rst    => rst,
             start  => atan_start,
-            x_in   => sqrt_res,
-            y_in   => arg_r,
+            x_in   => arg_r,
+            y_in   => sqrt_res,
             result => atan_res,
             done   => atan_done,
             busy   => atan_busy
         );
 
     process (clk)
+        variable ang : word128_t;
     begin
         if rising_edge(clk) then
             if rst = '1' then
@@ -100,7 +103,6 @@ begin
                 result_r   <= (others => '0');
                 arg_r      <= (others => '0');
                 x2         <= (others => '0');
-                one_minus  <= (others => '0');
                 sqrt_arg   <= (others => '0');
                 sqrt_start <= '0';
                 atan_start <= '0';
@@ -131,9 +133,9 @@ begin
 
                     when ST_EDGE =>
                         if arg_r < 0 then
-                            result_r <= -Q_HALF_PI;
+                            result_r <= Q_PI;      -- arccos(-1) = pi
                         else
-                            result_r <= Q_HALF_PI;
+                            result_r <= Q_ZERO;    -- arccos(+1) = 0
                         end if;
                         state <= ST_DONE;
 
@@ -142,9 +144,8 @@ begin
                         state <= ST_ONE_MINUS;
 
                     when ST_ONE_MINUS =>
-                        one_minus <= Q_ONE - x2;
-                        sqrt_arg  <= Q_ONE - x2;
-                        state     <= ST_SQRT_START;
+                        sqrt_arg <= Q_ONE - x2;
+                        state    <= ST_SQRT_START;
 
                     when ST_SQRT_START =>
                         sqrt_start <= '1';
@@ -161,9 +162,21 @@ begin
 
                     when ST_ATAN_WAIT =>
                         if atan_done = '1' then
-                            result_r <= atan_res;
-                            state    <= ST_DONE;
+                            state <= ST_NORM;
                         end if;
+
+                    -- Upewnij się, że wynik jest w [0, pi]
+                    when ST_NORM =>
+                        ang := atan_res;
+                        if ang < 0 then
+                            ang := ang + Q_TWO_PI;
+                        end if;
+                        if ang > Q_PI then
+                            -- na wszelki wypadek (numeryka) – odbicie do [0,pi]
+                            ang := Q_TWO_PI - ang;
+                        end if;
+                        result_r <= ang;
+                        state    <= ST_DONE;
 
                     when ST_DONE =>
                         done_r <= '1';

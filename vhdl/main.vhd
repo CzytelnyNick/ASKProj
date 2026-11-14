@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 -- Program główny – wywołuje podprogram matematyczny przez pamięć operacyjną
--- Demonstracja: obliczenie sin(x) oraz arcsin(x) dla zadanego argumentu
+-- Demonstracja: obliczenie cos(x) oraz arccos(x) dla zadanego argumentu
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -14,7 +14,7 @@ entity main is
         rst           : in  std_logic;
         -- Sterowanie z testbencha / otoczenia
         go            : in  std_logic;
-        -- Wybór demo: 0 = sin, 1 = arcsin (ładowane do pamięci przed startem)
+        -- Wybór demo: 0 = cos, 1 = arccos (ładowane do pamięci przed startem)
         demo_opcode   : in  word128_t;
         demo_arg      : in  word128_t;
         -- Wyniki widoczne na zewnątrz

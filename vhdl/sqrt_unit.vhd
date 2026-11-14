@@ -81,7 +81,7 @@ begin
                         if start = '1' then
                             busy_r <= '1';
                             x_reg  <= arg_in;
-                            -- Start Newtona: y0 = 1 (dobre dla x w [0, 1] przy arcsin)
+                            -- Start Newtona: y0 = 1 (dobre dla x w [0, 1] przy arccos)
                             -- Dla ogólnego x: y0 = max(x, 1) w przybliżeniu
                             if arg_in = 0 then
                                 result_r <= Q_ZERO;

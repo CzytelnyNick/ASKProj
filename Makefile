@@ -1,4 +1,4 @@
-# Projekt 5 ASK – budowa i symulacja (GHDL)
+# Projekt 6 ASK – budowa i symulacja (GHDL)
 GHDL     ?= ghdl
 GHDLFLAGS = --std=08 -frelaxed
 
@@ -8,10 +8,10 @@ WORK     = work
 SRCS = \
 	$(VHDL_DIR)/ask_types_pkg.vhd \
 	$(VHDL_DIR)/cordic_pkg.vhd \
-	$(VHDL_DIR)/sin_unit.vhd \
+	$(VHDL_DIR)/cos_unit.vhd \
 	$(VHDL_DIR)/sqrt_unit.vhd \
 	$(VHDL_DIR)/atan_unit.vhd \
-	$(VHDL_DIR)/arcsin_unit.vhd \
+	$(VHDL_DIR)/arccos_unit.vhd \
 	$(VHDL_DIR)/memory.vhd \
 	$(VHDL_DIR)/math_subprogram.vhd \
 	$(VHDL_DIR)/main.vhd \

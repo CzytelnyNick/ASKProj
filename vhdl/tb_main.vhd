@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- Testbench – weryfikacja sin(x) i arcsin(x) (Projekt 5 ASK)
+-- Testbench – weryfikacja cos(x) i arccos(x) (Projekt 6 ASK)
 --------------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -85,7 +85,6 @@ architecture sim of tb_main is
             report "FAIL: " & name & " error too large"
             severity error;
 
-        -- Status bit0 (done) powinien być ustawiony; bit1 = error tylko poza domeną
         assert sts_s(0) = '1'
             report "FAIL: " & name & " STATUS.done not set"
             severity error;
@@ -115,52 +114,55 @@ begin
         rst <= '0';
         wait for 20 ns;
 
-        write(L, string'("==== Projekt 5 ASK: sin / arcsin (128-bit Q4.124) ===="));
+        write(L, string'("==== Projekt 6 ASK: cos / arccos (128-bit Q4.124) ===="));
         writeline(output, L);
 
         ----------------------------------------------------------------
-        -- sin(x)
+        -- cos(x)
         ----------------------------------------------------------------
-        run_case("sin(0)", OPCODE_SIN, 0.0, 0.0, 1.0e-6,
+        run_case("cos(0)", OPCODE_COS, 0.0, 1.0, 1.0e-5,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
-        run_case("sin(pi/6)", OPCODE_SIN, MATH_PI / 6.0, 0.5, 1.0e-5,
+        run_case("cos(pi/6)", OPCODE_COS, MATH_PI / 6.0, sqrt(0.75), 1.0e-5,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
-        run_case("sin(pi/4)", OPCODE_SIN, MATH_PI / 4.0, sqrt(0.5), 1.0e-5,
+        run_case("cos(pi/4)", OPCODE_COS, MATH_PI / 4.0, sqrt(0.5), 1.0e-5,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
-        run_case("sin(pi/2)", OPCODE_SIN, MATH_PI / 2.0, 1.0, 1.0e-5,
+        run_case("cos(pi/3)", OPCODE_COS, MATH_PI / 3.0, 0.5, 1.0e-5,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
-        run_case("sin(pi)", OPCODE_SIN, MATH_PI, 0.0, 1.0e-4,
+        run_case("cos(pi/2)", OPCODE_COS, MATH_PI / 2.0, 0.0, 1.0e-4,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
-        run_case("sin(-pi/6)", OPCODE_SIN, -MATH_PI / 6.0, -0.5, 1.0e-5,
+        run_case("cos(pi)", OPCODE_COS, MATH_PI, -1.0, 1.0e-5,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
-        run_case("sin(1.0)", OPCODE_SIN, 1.0, sin(1.0), 1.0e-5,
+        run_case("cos(-pi/3)", OPCODE_COS, -MATH_PI / 3.0, 0.5, 1.0e-5,
+                 clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
+
+        run_case("cos(1.0)", OPCODE_COS, 1.0, cos(1.0), 1.0e-5,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
         ----------------------------------------------------------------
-        -- arcsin(x)
+        -- arccos(x)
         ----------------------------------------------------------------
-        run_case("arcsin(0)", OPCODE_ARCSIN, 0.0, 0.0, 1.0e-5,
+        run_case("arccos(1)", OPCODE_ARCCOS, 1.0, 0.0, 1.0e-6,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
-        run_case("arcsin(0.5)", OPCODE_ARCSIN, 0.5, MATH_PI / 6.0, 1.0e-4,
+        run_case("arccos(0.5)", OPCODE_ARCCOS, 0.5, MATH_PI / 3.0, 1.0e-4,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
-        run_case("arcsin(-0.5)", OPCODE_ARCSIN, -0.5, -MATH_PI / 6.0, 1.0e-4,
+        run_case("arccos(0)", OPCODE_ARCCOS, 0.0, MATH_PI / 2.0, 1.0e-4,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
-        run_case("arcsin(1)", OPCODE_ARCSIN, 1.0, MATH_PI / 2.0, 1.0e-6,
+        run_case("arccos(-0.5)", OPCODE_ARCCOS, -0.5, 2.0 * MATH_PI / 3.0, 1.0e-4,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
-        run_case("arcsin(-1)", OPCODE_ARCSIN, -1.0, -MATH_PI / 2.0, 1.0e-6,
+        run_case("arccos(-1)", OPCODE_ARCCOS, -1.0, MATH_PI, 1.0e-6,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
-        run_case("arcsin(sqrt(2)/2)", OPCODE_ARCSIN, sqrt(0.5), MATH_PI / 4.0, 1.0e-4,
+        run_case("arccos(sqrt(2)/2)", OPCODE_ARCCOS, sqrt(0.5), MATH_PI / 4.0, 1.0e-4,
                  clk, go, demo_opcode, demo_arg, result_out, status_out, finished);
 
         write(L, string'("==== Wszystkie testy zakonczone ===="));
