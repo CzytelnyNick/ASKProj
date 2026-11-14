@@ -14,5 +14,6 @@ Wymagany GHDL (VHDL-2008).
 
 ## Dokumentacja
 
-- Tutorial testowania (krok po kroku): [docs/TUTORIAL_TESTOWANIE.md](docs/TUTORIAL_TESTOWANIE.md)
+- Zarys koncepcji (z wyjaśnieniem): [docs/KONCEPCJA.md](docs/KONCEPCJA.md)
+- Tutorial testowania: [docs/TUTORIAL_TESTOWANIE.md](docs/TUTORIAL_TESTOWANIE.md)
 - Architektura i mapa pamięci: [docs/PROJEKT5.md](docs/PROJEKT5.md)
